@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-tw">
+
+<head>
+	<title>台科ㄉ空教室！</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocas-ui/2.3.3/tocas.css">
+</head>
+
+<body style="margin-top:70px">
+	<div class="ts top fixed inverted borderless large menu">
+		<div class="ts narrow container">
+			<div class="header item">台科ㄉ空教室！</div>
+			<a href="/" class="item">首頁</a>
+			<a href="/about" class="item">關於</a>
+		</div>
+	</div>
+	<div class="ts container">
+		<div class="ts huge dividing header">
+			台科ㄉ空教室！
+			<div class="sub header">找找看今天台科有哪間空教室可以待。</div>
+		</div>
+		<select class="ts basic dropdown" name="building">
+			<option value="T4">第四教學大樓</option>
+			<option value="T3">第三教學大樓</option>
+			<option value="E1">工程一館</option>
+			<option value="E2">工程二館</option>
+			<option value="EE">電資館</option>
+			<option value="MA">管理大樓</option>
+			<option value="IB">國際大樓</option>
+			<option value="TR">研揚大樓</option>
+		</select>
+		<button class="ts icon button" id="search">
+			<i class="search icon"></i>
+		</button>
+		<div class="ts header" id="message">
+		</div>
+		<div class="ts heading slate">
+			<span class="header">空的教室</span>
+			<span class="description">你理論上可以在這裡些教室待著耍廢。</span>
+			<div class="ts list" id="free">
+			</div>
+		</div>
+		<br>
+		<div class="ts heading slate">
+			<span class="header">有在用的教室</span>
+			<span class="description">這些教室被借來上課或是辦奇怪的活動了。</span>
+			<div class="ts list" id="using">	
+			</div>
+		</div>
+	</div>
+	<br>
+
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/tocas-ui/2.3.3/tocas.js"></script>
+	<script>
+		var period = [];
+		for(var i=0;i<=14;i++){
+			period[i]=[];
+		}
+		period[1][0] = '0830';
+		period[2][0] = '0930';
+		period[3][0] = '1030';
+		period[4][0] = '1130';
+		period[5][0] = '1230';
+		period[6][0] = '1330';
+		period[7][0] = '1430';
+		period[8][0] = '1530';
+		period[9][0] = '1630';
+		period[10][0] = '1730';
+		period[11][0] = '1825';
+		period[12][0] = '1920';
+		period[13][0] = '2015';
+		period[14][0] = '2110';
+
+		period[1][1] = '0920';
+		period[2][1] = '1020';
+		period[3][1] = '1120';
+		period[4][1] = '1220';
+		period[5][1] = '1320';
+		period[6][1] = '1420';
+		period[7][1] = '1520';
+		period[8][1] = '1620';
+		period[9][1] = '1720';
+		period[10][1] = '1820';
+		period[11][1] = '1915';
+		period[12][1] = '2010';
+		period[13][1] = '2105';
+		period[14][1] = '2200';
+		$("#search").click(function () {
+			var time = new Date();
+			var timecode = time.getHours().toString() + time.getMinutes().toString();
+			// timecode = '1400';
+			var classNum = -1; // 0:放學, -1:下課 else:正常
+			for(var i=1; i<=14; i++){
+				if(parseInt(timecode) >= parseInt(period[i][0]) && parseInt(timecode) <= parseInt(period[i][1])){
+					console.log("第"+i+"節課");
+					classNum=i
+					break;
+				}
+				if(i===14){
+					classNum = 0;
+					$("#message").html(`現在學校關了！`);
+				}
+			}
+			if(classNum===-1){
+				$("#message").html(`現在是下課時間！`);
+			}
+			if(classNum>0){
+				$("#free").empty();
+				$("#using").empty();
+				$(".slate").append(`<div class="ts active dimmer">
+					<div class="ts text loader">讀取中</div>
+				</div>`);
+				$("#message").html(`現在是第`+classNum+`節課
+				<div class="inline sub header">
+					(介於`+period[classNum][0]+`~`+period[classNum][1]+`)
+				</div>`);
+				$.post("/ajax", {building:$("select").val()}, (data) => {
+					$('.dimmer').remove();
+					for(var i=0;i<data.length;i++){
+						if(data[i][classNum]=="") {
+							$("#free").append(`
+								<div class="item">
+									<i class="map-marker marker icon"></i>
+									<div class="content">
+										<a class="">`+data[i][0]+`</a>
+									</div>
+								</div>`);
+						}
+						else {
+							$("#using").append(`
+								<div class="item">
+									<i class="map-marker marker icon"></i>
+									<div class="content">
+										<a class="">`+data[i][0]+`</a>
+										<div class="description">`+data[i][classNum].toString()+`</div>
+									</div>
+								</div>`);
+						}
+					}
+				});
+			}
+		});
+	</script>
+</body>
+
+</html>
