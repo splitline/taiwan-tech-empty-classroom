@@ -108,14 +108,15 @@
 					classNum=i
 					break;
 				}
-				if(i===14){
-					classNum = 0;
-					$("#message").html(`現在學校關了！`);
-				}
 			}
-			if(classNum===-1){
+			if(parseInt(timecode) >= parseInt(period[14][1])){
+				classNum = 0;
+				$("#message").html(`現在學校關了！`);
+			}
+			else if(classNum===-1){
 				$("#message").html(`現在是下課時間！`);
 			}
+			
 			if(classNum>0){
 				$("#free").empty();
 				$("#using").empty();
