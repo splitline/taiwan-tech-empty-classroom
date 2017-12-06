@@ -110,7 +110,7 @@
 					break;
 				}
 			}
-			if(parseInt(timecode) >= parseInt(period[14][1])){
+			if(parseInt(timecode) >= parseInt(period[14][1]) ||parseInt(timecode) < parseInt(period[1][0])){
 				classNum = 0;
 				$("#message").html(`現在學校關了！`);
 			}
