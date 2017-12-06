@@ -1,7 +1,7 @@
-from flask import Flask, render_template, jsonify, request
-import requests
-from bs4 import BeautifulSoup
 import datetime
+import requests
+from flask import Flask, render_template, jsonify, request
+from bs4 import BeautifulSoup
 app = Flask(__name__, static_url_path='/static')
 
 
@@ -23,15 +23,18 @@ def ajax():
     }
     r = requests.post('http://stuinfo.ntust.edu.tw/classroom_user/classroom_usecondition.aspx', data=payload)
     html_data = BeautifulSoup(r.text, "html5lib")
-    table_data = [[cell.text.strip() for cell in row("td", nowrap="nowrap")]
-                  for row in html_data.table("tr", nowrap="nowrap")]
+    table_data = { row("td", nowrap="nowrap")[0].text.strip() :[cell.text.strip() for cell in row("td", nowrap="nowrap")]
+                  for row in html_data.table("tr", nowrap="nowrap")}
     return jsonify(table_data)
 
 
 @app.route('/about')
 def about():
     return render_template('about.html')
-
+# {
+# 	"TR-211":['1','2','3'],
+# 	"TR-211":['1','2','3'],
+# }
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

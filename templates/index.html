@@ -47,7 +47,7 @@
 		</div>
 		<div class="ts heading slate">
 			<span class="header">空的教室</span>
-			<span class="description">你理論上可以在這裡些教室待著耍廢。</span>
+			<span class="description">你理論上可以在這些教室待著耍廢。</span>
 			<div class="ts list" id="free">
 			</div>
 		</div>
@@ -61,10 +61,36 @@
 	</div>
 	<br>
 
+
+	<div class="ts modals dimmer">
+		<dialog id="modal" class="ts closable tiny modal" open>
+			<div class="ts icon header">
+				<i class="notice circle icon"></i> <span id="classroomId"></span> 整天的狀態
+			</div>
+			<i class="close icon"></i>
+			<div class="content">
+				<table class="ts borderless big table" id="timetable">
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<div class="actions">
+				<button class="ts positive button">好。</button>
+			</div>
+		</dialog>
+	</div>
+
+	<div class="ts snackbar">
+		<div class="content"></div>
+		<a class="action"></a>
+	</div>
+
 	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/tocas-ui/2.3.3/tocas.js"></script>
 	<script>
-		
+		function timecodeToTime(str) {
+			return str.slice(0,2)+":"+str.slice(2,4);
+		}
 		var period = [];
 		for(var i=0;i<=14;i++){
 			period[i]=[];
@@ -98,45 +124,52 @@
 		period[12][1] = '2010';
 		period[13][1] = '2105';
 		period[14][1] = '2200';
+
+		var classroomData;
 		$("#search").click(function () {
 			var time = new Date();
 			var timecode = time.getHours().toString() + time.getMinutes().toString();
-			// timecode = '1400';
-			var classNum = -1; // 0:放學, -1:下課 else:正常
-			for(var i=1; i<=14; i++){
-				if(parseInt(timecode) >= parseInt(period[i][0]) && parseInt(timecode) <= parseInt(period[i][1])){
-					console.log("第"+i+"節課");
-					classNum=i
-					break;
-				}
-			}
-			if(parseInt(timecode) >= parseInt(period[14][1])){
+			// timecode = '1010';
+			var classNum = -1; // 0:放學, else:正常
+			if(parseInt(timecode) >= parseInt(period[14][1]) || parseInt(timecode) <= parseInt(period[1][0])){
 				classNum = 0;
-				$("#message").html(`現在學校關了！`);
+				$("#message").html(`現在學校關了！如果你還找得到沒鎖起來的教室，正常來說都會是空教室。`);
 			}
-			else if(classNum===-1){
-				$("#message").html(`現在是下課時間！`);
+			else {
+				for(var i=1; i<=14; i++){
+					if(parseInt(timecode) >= parseInt(period[i][0]) && parseInt(timecode) <= parseInt(period[i][1])){
+						classNum=i
+						break;
+					}else if(parseInt(timecode) >= parseInt(period[i][1]) && parseInt(timecode) <= parseInt(period[i+1][0])){
+						classNum=i+1;
+						ts('.snackbar').snackbar({
+							content: '現在是下課時間！直接查詢下一節課。',
+						});
+						break;
+					}
+				}
 			}
 			
 			if(classNum>0){
 				$("#free").empty();
 				$("#using").empty();
-				$(".slate").append(`<div class="ts active dimmer">
+				$(".slate").append(`<div class="ts active loading dimmer" >
 					<div class="ts text loader">讀取中</div>
 				</div>`);
-				$("#message").html(`現在是第`+classNum+`節課
+				$("#message").html(`查詢第`+classNum+`節課
 				<div class="inline sub header">
-					(介於`+period[classNum][0]+`~`+period[classNum][1]+`)
+					(介於`+timecodeToTime(period[classNum][0])+`~`+timecodeToTime(period[classNum][1])+`)
 				</div>`);
 				$.post("/ajax", {building:$("select").val()}, (data) => {
-					$('.dimmer').remove();
-					for(var i=0;i<data.length;i++){
+					classroomData = data;
+					$('.loading').remove();
+					for(i in data){
 						if(data[i][classNum]=="") {
 							$("#free").append(`
 								<div class="item">
 									<i class="map-marker marker icon"></i>
 									<div class="content">
-										<a class="">`+data[i][0]+`</a>
+										<a class="classroom" data-room-id=`+data[i][0]+`>`+data[i][0]+`</a>
 									</div>
 								</div>`);
 						}
@@ -145,13 +178,28 @@
 								<div class="item">
 									<i class="map-marker marker icon"></i>
 									<div class="content">
-										<a class="">`+data[i][0]+`</a>
+										<a class="classroom" data-room-id=`+data[i][0]+`>`+data[i][0]+`</a>
 										<div class="description">`+data[i][classNum].toString()+`</div>
 									</div>
 								</div>`);
 						}
 					}
 				});
+			}
+
+		});
+
+
+		$(document).on('click', '.classroom', function(){
+			$("#timetable").empty();
+			ts('#modal').modal("show");
+			$("span#classroomId").text($(this).attr("data-room-id"));
+			for(var i=1;i<=14;i++){
+				var tmpData = classroomData[$(this).attr("data-room-id")][i];
+				$("#timetable").append(`<tr `+(tmpData===""?`class="positive"`:"")+`>
+					<td class="right aligned">`+timecodeToTime(period[i][0])+"~"+timecodeToTime(period[i][1])+`</td>
+					<td>`+ (tmpData===""?`<i class="check icon"></i> 空教室`:tmpData) +`</td>
+				</tr>`);
 			}
 		});
 	</script>
