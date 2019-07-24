@@ -8,7 +8,7 @@
 	<meta content="website" property="og:type" />
 	<meta content="http://classroom-search.herokuapp.com/" property="og:url" />
 	<meta content="台科ㄉ空教室！ - 幫你找找看今天台科有哪間空教室可以待。" property="og:description" />
-	<meta content="http://classroom-search.herokuapp.com/static/og2.png" property="og:image" />
+	<meta content="ｏｇ/static/og2.png" property="og:image" />
 	<meta content="635" property="og:image:width" />
 	<meta content="635" property="og:image:height" />
 
@@ -30,15 +30,15 @@
 			台科ㄉ空教室！
 			<div class="sub header">找找看今天台科有哪間空教室可以待。</div>
 		</div>
-		<select class="ts basic dropdown" name="building">
+		<select class="ts basic dropdown" id="building">
+			<option value="TR">研揚大樓</option>
+			<option value="IB">國際大樓</option>
 			<option value="T4">第四教學大樓</option>
 			<option value="T3">第三教學大樓</option>
 			<option value="E1">工程一館</option>
 			<option value="E2">工程二館</option>
 			<option value="EE">電資館</option>
 			<option value="MA">管理大樓</option>
-			<option value="IB">國際大樓</option>
-			<option value="TR">研揚大樓</option>
 		</select>
 		<button class="ts icon button" id="search">
 			<i class="search icon"></i>
@@ -50,12 +50,20 @@
 			<span class="description">你理論上可以在這些教室待著耍廢。</span>
 			<div class="ts list" id="free">
 			</div>
+
+			<div class="ts loading dimmer">
+				<div class="ts text loader">讀取中...</div>
+			</div>
 		</div>
 		<br>
 		<div class="ts heading slate">
 			<span class="header">有在用的教室</span>
 			<span class="description">這些教室被借來上課或是辦奇怪的活動了。</span>
-			<div class="ts list" id="using">	
+			<div class="ts list" id="using">
+			</div>
+
+			<div class="ts loading dimmer">
+				<div class="ts text loader">讀取中...</div>
 			</div>
 		</div>
 	</div>
@@ -85,123 +93,79 @@
 		<a class="action"></a>
 	</div>
 
-	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/tocas-ui/2.3.3/tocas.js"></script>
 	<script>
-		function timecodeToTime(str) {
-			return str.slice(0,2)+":"+str.slice(2,4);
-		}
-		var period = [];
-		for(var i=0;i<=14;i++){
-			period[i]=[];
-		}
-		period[1][0] = '0810';
-		period[2][0] = '0910';
-		period[3][0] = '1020';
-		period[4][0] = '1120';
-		period[5][0] = '1220';
-		period[6][0] = '1320';
-		period[7][0] = '1420';
-		period[8][0] = '1530';
-		period[9][0] = '1630';
-		period[10][0] = '1730';
-		period[11][0] = '1825';
-		period[12][0] = '1920';
-		period[13][0] = '2015';
-		period[14][0] = '2110';
+		const timecodeToTime = (a, b) => `${a.slice(0, 2)}:${a.slice(2, 4)} ~ ${b.slice(0, 2)}:${b.slice(2, 4)}`;
 
-		period[1][1] = '0900';
-		period[2][1] = '1000';
-		period[3][1] = '1110';
-		period[4][1] = '1210';
-		period[5][1] = '1310';
-		period[6][1] = '1410';
-		period[7][1] = '1510';
-		period[8][1] = '1620';
-		period[9][1] = '1720';
-		period[10][1] = '1820';
-		period[11][1] = '1915';
-		period[12][1] = '2010';
-		period[13][1] = '2105';
-		period[14][1] = '2200';
+		const period = [
+			["0810", "0900"],
+			["0910", "1000"],
+			["1020", "1110"],
+			["1120", "1210"],
+			["1220", "1310"],
+			["1320", "1410"],
+			["1420", "1510"],
+			["1530", "1620"],
+			["1630", "1720"],
+			["1730", "1820"],
+			["1825", "1915"],
+			["1920", "2010"],
+			["2015", "2105"],
+			["2110", "2200"]
+		];
 
-		var classroomData;
-		$("#search").click(function () {
-			var time = new Date();
-			var timecode = time.getHours().toString() + time.getMinutes().toString();
-			// timecode = '1010';
-			var classNum = -1; // 0:放學, else:正常
-			if(parseInt(timecode) >= parseInt(period[14][1]) || parseInt(timecode) <= parseInt(period[1][0])){
-				classNum = 0;
-				$("#message").html(`現在學校關了！如果你還找得到沒鎖起來的教室，正常來說都會是空教室。`);
-			}
-			else {
-				for(var i=1; i<=14; i++){
-					if(parseInt(timecode) >= parseInt(period[i][0]) && parseInt(timecode) <= parseInt(period[i][1])){
-						classNum=i
-						break;
-					}else if(parseInt(timecode) >= parseInt(period[i][1]) && parseInt(timecode) <= parseInt(period[i+1][0])){
-						classNum=i+1;
-						ts('.snackbar').snackbar({
-							content: '現在是下課時間！直接查詢下一節課。',
-						});
-						break;
-					}
+		const nthMapping = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "B", "C", "D"];
+
+		document.getElementById('search').onclick = function () {
+			const nowTime = new Date();
+			const timecode = nowTime.getHours().toString().padStart(2,"0") + nowTime.getMinutes().toString().padStart(2,"0");
+
+			let nthClass = 0;
+			for (let i = 0; i < 14; i++) {
+				if (timecode >= period[i][0] && timecode <= period[i][1]) {
+					nthClass = i;
+					break;
+				} else if (i + 1 < 14 && timecode >= period[i][1] && timecode <= period[i + 1][0]) {
+					nthClass = i + 1;
+					break;
 				}
 			}
-			
-			if(classNum>0){
-				$("#free").empty();
-				$("#using").empty();
-				$(".slate").append(`<div class="ts active loading dimmer" >
-					<div class="ts text loader">讀取中</div>
-				</div>`);
-				$("#message").html(`查詢第`+classNum+`節課
-				<div class="inline sub header">
-					(介於`+timecodeToTime(period[classNum][0])+`~`+timecodeToTime(period[classNum][1])+`)
-				</div>`);
-				$.post("/ajax", {building:$("select").val()}, (data) => {
-					classroomData = data;
-					$('.loading').remove();
-					for(i in data){
-						if(data[i][classNum]=="") {
-							$("#free").append(`
-								<div class="item">
-									<i class="map-marker marker icon"></i>
+
+			ts('.snackbar').snackbar({
+				content: `查詢第 ${nthMapping[nthClass]} 節課。（${timecodeToTime(period[nthClass][0], period[nthClass][1])}）`,
+			});
+
+			document.querySelectorAll('.list').forEach(elem => elem.innerHTML = "");
+			document.querySelectorAll('.loading').forEach(elem => elem.classList.add('active'));
+			fetch(`/ajax?building=${document.getElementById('building').value}`)
+				.then(r => r.json())
+				.then(data => {
+					document.querySelectorAll('.loading').forEach(elem => elem.classList.remove('active'));
+					Object.keys(data).forEach(classroom => {
+						const div = document.createElement("div");
+						div.className = "item";
+						div.innerHTML = `<i class="map-marker marker icon"></i>
 									<div class="content">
-										<a class="classroom" data-room-id=`+data[i][0]+`>`+data[i][0]+`</a>
-									</div>
-								</div>`);
+										<a class="classroom">${classroom}</a>
+										<div class="description">${data[classroom][nthClass]}</div>
+									</div>`;
+						div.querySelector('.classroom').onclick = () => {
+							document.querySelector('span#classroomId').textContent = classroom;
+							document.getElementById('timetable').innerHTML = data[classroom].map(
+									(course, i) =>
+									`<tr class="${!course ? "positive":""}" >
+										<td class="right aligned">
+												${nthMapping[i]} ${timecodeToTime(period[i][0], period[i][1])} 
+										</td>
+										<td>${!course ? '<i class="check icon"></i> 空教室': course}</td>
+									</tr>`)
+								.join("\n");
+							ts('#modal').modal("show");
 						}
-						else {
-							$("#using").append(`
-								<div class="item">
-									<i class="map-marker marker icon"></i>
-									<div class="content">
-										<a class="classroom" data-room-id=`+data[i][0]+`>`+data[i][0]+`</a>
-										<div class="description">`+data[i][classNum].toString()+`</div>
-									</div>
-								</div>`);
-						}
-					}
+						document.getElementById(!data[classroom][nthClass] ? 'free' : 'using').append(div);
+					});
 				});
-			}
-
-		});
-
-
-		$(document).on('click', '.classroom', function(){
-			$("#timetable").empty();
-			ts('#modal').modal("show");
-			$("span#classroomId").text($(this).attr("data-room-id"));
-			for(var i=1;i<=14;i++){
-				var tmpData = classroomData[$(this).attr("data-room-id")][i];
-				$("#timetable").append(`<tr `+(tmpData===""?`class="positive"`:"")+`>
-					<td class="right aligned">`+timecodeToTime(period[i][0])+"~"+timecodeToTime(period[i][1])+`</td>
-					<td>`+ (tmpData===""?`<i class="check icon"></i> 空教室`:tmpData) +`</td>
-				</tr>`);
-			}
-		});
+		};
 	</script>
 </body>
 
