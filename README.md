@@ -1,5 +1,7 @@
 # 台科ㄉ空教室
 
+Link: https://classroom-search.herokuapp.com/
+
 很隨意的讀我.媽的。
 
 基本上就是用來找出台科現在哪間教室是空的。
