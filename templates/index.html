@@ -40,6 +40,8 @@
 			<option value="EE">電資館</option>
 			<option value="MA">管理大樓</option>
 		</select>
+		<select class="ts basic dropdown" id="period">
+		</select>
 		<button class="ts icon button" id="search">
 			<i class="search icon"></i>
 		</button>
@@ -116,20 +118,28 @@
 
 		const nthMapping = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "B", "C", "D"];
 
-		document.getElementById('search').onclick = function () {
-			const nowTime = new Date();
-			const timecode = nowTime.getHours().toString().padStart(2,"0") + nowTime.getMinutes().toString().padStart(2,"0");
+		window.onload = () => {
+			nthMapping.forEach((code, i) => {
+				document.getElementById("period").innerHTML += `<option value="${i}">第 ${code} 節課</option>`;
+			});
 
-			let nthClass = 0;
+			const nowTime = new Date();
+			const timecode = nowTime.getHours().toString().padStart(2, "0") + nowTime.getMinutes().toString().padStart(2,
+				"0");
+
 			for (let i = 0; i < 14; i++) {
 				if (timecode >= period[i][0] && timecode <= period[i][1]) {
-					nthClass = i;
+					document.getElementById("period").value = i;
 					break;
 				} else if (i + 1 < 14 && timecode >= period[i][1] && timecode <= period[i + 1][0]) {
-					nthClass = i + 1;
+					document.getElementById("period").value = i + 1;
 					break;
 				}
 			}
+		}
+
+		document.getElementById('search').onclick = function () {
+			const nthClass = document.getElementById("period").value;
 
 			ts('.snackbar').snackbar({
 				content: `查詢第 ${nthMapping[nthClass]} 節課。（${timecodeToTime(period[nthClass][0], period[nthClass][1])}）`,
