@@ -97,8 +97,6 @@
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/tocas-ui/2.3.3/tocas.js"></script>
 	<script>
-		const timecodeToTime = (a, b) => `${a.slice(0, 2)}:${a.slice(2, 4)} ~ ${b.slice(0, 2)}:${b.slice(2, 4)}`;
-
 		const period = [
 			["0810", "0900"],
 			["0910", "1000"],
@@ -117,11 +115,13 @@
 		];
 
 		const nthMapping = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "B", "C", "D"];
+		
+		const nthToTime = n => `${period[n][0].slice(0, 2)}:${period[n][0].slice(2, 4)} ~ ${period[n][1].slice(0, 2)}:${period[n][1].slice(2, 4)}`;
 
 		window.onload = () => {
-			nthMapping.forEach((code, i) => {
-				document.getElementById("period").innerHTML += `<option value="${i}">第 ${code} 節課</option>`;
-			});
+			document.getElementById("period").innerHTML = nthMapping.map(
+				(code, i) => `<option value="${i}">第 ${code} 節課</option>`
+			).join('');
 
 			const nowTime = new Date();
 			const timecode = nowTime.getHours().toString().padStart(2, "0") + nowTime.getMinutes().toString().padStart(2,
@@ -142,7 +142,7 @@
 			const nthClass = document.getElementById("period").value;
 
 			ts('.snackbar').snackbar({
-				content: `查詢第 ${nthMapping[nthClass]} 節課。（${timecodeToTime(period[nthClass][0], period[nthClass][1])}）`,
+				content: `查詢第 ${nthMapping[nthClass]} 節課。（${nthToTime(nthClass)}）`,
 			});
 
 			document.querySelectorAll('.list').forEach(elem => elem.innerHTML = "");
@@ -165,7 +165,7 @@
 									(course, i) =>
 									`<tr class="${!course ? "positive":""}" >
 										<td class="right aligned">
-												${nthMapping[i]} ${timecodeToTime(period[i][0], period[i][1])} 
+												${nthMapping[i]} ${nthToTime(i)} 
 										</td>
 										<td>${!course ? '<i class="check icon"></i> 空教室': course}</td>
 									</tr>`)
