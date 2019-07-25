@@ -165,11 +165,11 @@
 									(course, i) =>
 									`<tr class="${!course ? "positive":""}" >
 										<td class="right aligned">
-												${nthMapping[i]} ${nthToTime(i)} 
+											${nthMapping[i]} ${nthToTime(i)} 
 										</td>
 										<td>${!course ? '<i class="check icon"></i> 空教室': course}</td>
 									</tr>`)
-								.join("\n");
+								.join("");
 							ts('#modal').modal("show");
 						}
 						document.getElementById(!data[classroom][nthClass] ? 'free' : 'using').append(div);
