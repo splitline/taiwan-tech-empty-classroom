@@ -2,6 +2,17 @@
 <html lang="zh-tw">
 
 <head>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-51534833-4"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() {
+			dataLayer.push(arguments);
+		}
+		gtag('js', new Date());
+		gtag('config', 'UA-51534833-4');
+	</script>
+
 	<title>台科ㄉ空教室！</title>
 	<meta content="台科ㄉ空教室！ - 幫你找找看今天台科有哪間空教室可以待。" name="description" />
 	<meta content="台科ㄉ空教室！" property="og:title" />
@@ -13,7 +24,8 @@
 	<meta content="635" property="og:image:height" />
 
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocas-ui/2.3.3/tocas.css">
 </head>
 
@@ -115,8 +127,9 @@
 		];
 
 		const nthMapping = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "A", "B", "C", "D"];
-		
-		const nthToTime = n => `${period[n][0].slice(0, 2)}:${period[n][0].slice(2, 4)} ~ ${period[n][1].slice(0, 2)}:${period[n][1].slice(2, 4)}`;
+
+		const nthToTime = n =>
+			`${period[n][0].slice(0, 2)}:${period[n][0].slice(2, 4)} ~ ${period[n][1].slice(0, 2)}:${period[n][1].slice(2, 4)}`;
 
 		window.onload = () => {
 			document.getElementById("period").innerHTML = nthMapping.map(
