@@ -1,6 +1,6 @@
 # 台科ㄉ空教室
 
-Link: https://classroom-search.herokuapp.com/
+Link: http://classroom.taiwan-te.ch/
 
 很隨意的讀我.媽的。
 
